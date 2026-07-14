@@ -118,6 +118,22 @@ drop the rung and let the ladder be shorter. A crisp three-rung ladder beats
 a four-rung one with a dead rung. (If an analog *would* help the student find
 the method themselves, it belongs *before* the method is named, not after.)
 
+**A shallow problem sets a high floor under level 1.** Ladder length is bounded
+from below by the depth of the ideas, not only from above by their number. When
+the crux is a single small step, even the cheapest honest orienting nudge already
+hands the method: level 1 legitimately scores high on spoiler, and that floor is a
+property of the problem, not a failure of craft — it is fine. Do not chase a lower
+number by making level 1 vaguer; a nudge answerable only by guessing is a riddle,
+worse than an honest high-spoiler pointer (see level 1's rule that it must be
+answerable from the statement). The signature of hitting the floor: once level 1
+gives the method, a further rung can only restate it more explicitly — spoiler
+with no new conceptual step, which the student reads as "the same, spelled out" —
+or state the answer. Such problems support a very short ladder, often a single
+rung; keep it short rather than pad it with a louder repeat. (Contrast a problem
+that has a cheap orienting observation *separate* from the method — "this is
+quadratic in x" before "use the discriminant" — where level 1 can genuinely be
+low-spoiler.)
+
 ## Choosing among solution paths
 
 A problem often has several essentially different solutions, and graduated
