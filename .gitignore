@@ -1,0 +1,5 @@
+# Локальные настройки Claude Code (permissions конкретной машины)
+.claude/settings.local.json
+
+# Наборы задач — личные/авторские материалы, в репозиторий не коммитятся
+task-examples/*.pdf

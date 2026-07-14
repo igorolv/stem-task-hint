@@ -1,0 +1,568 @@
+<meta charset="utf-8">
+<!--
+  ШАБЛОН интерактивной карточки подсказок (рабочий пример — задача 50).
+  Чтобы сделать карточку для новой задачи: СКОПИРУЙ этот файл в scratchpad и замени:
+   • <title> и <h1>        — номер задачи
+   • .eyebrow              — номер задачи
+   • .statement            — условие + формула
+   • каждый .hint          — тексты подсказок; ЛИШНИЕ уровни удали целиком
+                             (лестница переменной длины — см. AGENTS.md)
+   • LS_KEY в <script>     — СДЕЛАЙ УНИКАЛЬНЫМ на каждый раунд, иначе
+                             подтянутся ответы прошлого раунда
+   • в buildMarkdown()     — заголовок «задача N» и префикс строк «| N |»
+  Форму оценки (3 вопроса на уровень + финал) и логику НЕ трогай — проверена.
+  charset обязателен (без него ломается кириллица).
+-->
+<title>Карточка подсказок — Задача 50</title>
+<style>
+  :root {
+    --paper: #F7F7F3;
+    --card: #FFFFFF;
+    --ink: #232A33;
+    --muted: #5C6672;
+    --pen: #2F52A0;
+    --pen-ink: #FFFFFF;
+    --pen-soft: rgba(47, 82, 160, .10);
+    --line: #DCDFD6;
+    --grid: rgba(47, 82, 160, .055);
+    --serif: Georgia, 'Times New Roman', serif;
+    --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161A20;
+      --card: #1D232B;
+      --ink: #E4E6E0;
+      --muted: #9AA3AD;
+      --pen: #8FAEEA;
+      --pen-ink: #10141A;
+      --pen-soft: rgba(143, 174, 234, .14);
+      --line: #2C333D;
+      --grid: rgba(143, 174, 234, .05);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #F7F7F3; --card: #FFFFFF; --ink: #232A33; --muted: #5C6672;
+    --pen: #2F52A0; --pen-ink: #FFFFFF; --pen-soft: rgba(47,82,160,.10);
+    --line: #DCDFD6; --grid: rgba(47,82,160,.055);
+  }
+  :root[data-theme="dark"] {
+    --paper: #161A20; --card: #1D232B; --ink: #E4E6E0; --muted: #9AA3AD;
+    --pen: #8FAEEA; --pen-ink: #10141A; --pen-soft: rgba(143,174,234,.14);
+    --line: #2C333D; --grid: rgba(143,174,234,.05);
+  }
+
+  html { background: var(--paper); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 24px 24px;
+    min-height: 100vh;
+  }
+  .wrap {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .eyebrow {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    line-height: 1.25;
+    margin: .35rem 0 0;
+    text-wrap: balance;
+  }
+  .intro { color: var(--muted); max-width: 38rem; }
+  .intro b { color: var(--ink); }
+
+  .statement {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    font-family: var(--serif);
+    font-size: 1.06rem;
+  }
+  .statement .formula {
+    text-align: center;
+    font-style: italic;
+    margin: .8rem 0 .2rem;
+    font-size: 1.15rem;
+  }
+  .statement .src { font-family: var(--sans); font-size: .78rem; color: var(--muted); margin-top: .9rem; }
+
+  .level {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem 1.4rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .level.reveal, .final.reveal { animation: fade .35s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  }
+  .level-head {
+    display: flex;
+    align-items: baseline;
+    gap: .6rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: .6rem;
+    margin-bottom: .9rem;
+  }
+  .level-num {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--pen);
+    font-weight: 700;
+  }
+  .level-type {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--muted);
+  }
+  .hint {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    margin: 0 0 1.1rem;
+  }
+
+  fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0 0 .9rem;
+  }
+  legend {
+    font-size: .85rem;
+    font-weight: 600;
+    padding: 0;
+    margin-bottom: .4rem;
+  }
+  legend small { font-weight: 400; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .chip { position: relative; cursor: pointer; }
+  .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .chip span {
+    display: inline-block;
+    padding: .3rem .75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: .85rem;
+    background: var(--paper);
+    transition: background .15s, border-color .15s;
+  }
+  .chip input:checked + span {
+    background: var(--pen);
+    border-color: var(--pen);
+    color: var(--pen-ink);
+  }
+  .chip input:focus-visible + span {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+  .chip:hover span { border-color: var(--pen); }
+
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: .9rem;
+    padding: .55rem .7rem;
+    min-height: 3.2rem;
+    resize: vertical;
+  }
+  textarea:focus-visible { outline: 2px solid var(--pen); outline-offset: 1px; }
+  .lbl { font-size: .85rem; font-weight: 600; display: block; margin-bottom: .35rem; }
+  .lbl small { font-weight: 400; color: var(--muted); }
+
+  .btn {
+    font-family: var(--sans);
+    font-size: .92rem;
+    font-weight: 600;
+    background: var(--pen);
+    color: var(--pen-ink);
+    border: 0;
+    border-radius: 6px;
+    padding: .6rem 1.2rem;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    background: var(--pen-soft);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  .btn:focus-visible { outline: 2px solid var(--pen); outline-offset: 2px; }
+  .gate-note { font-size: .78rem; color: var(--muted); margin-top: .45rem; }
+
+  .next-row { display: flex; flex-direction: column; align-items: flex-start; margin-top: .3rem; }
+
+  .final { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 1.25rem 1.5rem 1.4rem; }
+  .final h2 { font-family: var(--serif); font-size: 1.25rem; margin: 0 0 1rem; }
+
+  .out { margin-top: 1rem; }
+  .out textarea { min-height: 12rem; font-family: Consolas, 'Courier New', monospace; font-size: .8rem; }
+  .copied { color: var(--pen); font-size: .85rem; font-weight: 600; margin-left: .8rem; }
+  [hidden] { display: none !important; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Обкатка скилла stem-hint · Летняя серия 2026 · задача 50</div>
+    <h1>Задача 50 — карточка подсказок</h1>
+  </header>
+
+  <p class="intro">
+    Ты уже решила эту задачу — поэтому именно ты можешь оценить подсказки.
+    Представь, что решение <b>не шло</b>: открывай уровни <b>по одному</b> и после
+    каждого отвечай на три вопроса. Комментарий необязателен, но полезнее всего.
+    Подсказки ведут по одному из возможных путей — он не единственный: если
+    ты идёшь другой дорогой, это не значит, что ошиблась.
+  </p>
+
+  <div class="statement">
+    Ненулевые числа a и b таковы, что уравнение
+    <div class="formula">a(x − a)² + b(x − b)² = 0</div>
+    имеет единственное решение. Докажите, что |a| = |b|.
+    <div class="src">Задача 50 · Летнее задание</div>
+  </div>
+
+  <section class="level" id="level-1" data-level="1">
+    <div class="level-head"><span class="level-num">Уровень 1</span><span class="level-type">ориентир</span></div>
+    <p class="hint">
+      Здесь неизвестное уравнения — x, а a и b заданы (это ненулевые
+      параметры). Какова степень уравнения по x? И насколько сильное это
+      ограничение — «ровно одно решение» — для уравнения такой степени?
+    </p>
+    <fieldset>
+      <legend>Направление верное?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l1-dir" value="верное"><span>верное</span></label>
+        <label class="chip"><input type="radio" name="l1-dir" value="неверное"><span>неверное</span></label>
+        <label class="chip"><input type="radio" name="l1-dir" value="непонятно"><span>непонятно</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Спойлерность <small>— сколько лишнего выдаёт</small></legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l1-sp" value="0"><span>0 — ничего лишнего</span></label>
+        <label class="chip"><input type="radio" name="l1-sp" value="1"><span>1 — чуть-чуть</span></label>
+        <label class="chip"><input type="radio" name="l1-sp" value="2"><span>2 — выдаёт метод</span></label>
+        <label class="chip"><input type="radio" name="l1-sp" value="3"><span>3 — выдаёт ключевую идею</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Помогла бы, если бы ты застряла?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l1-help" value="да"><span>да</span></label>
+        <label class="chip"><input type="radio" name="l1-help" value="наверное"><span>наверное</span></label>
+        <label class="chip"><input type="radio" name="l1-help" value="нет"><span>нет</span></label>
+      </div>
+    </fieldset>
+    <label class="lbl" for="l1-com">Комментарий <small>(необязательно)</small></label>
+    <textarea id="l1-com"></textarea>
+    <div class="next-row">
+      <button class="btn next-btn" data-next="level-2" disabled>Показать уровень 2</button>
+      <div class="gate-note">Кнопка откроется после ответов на три вопроса.</div>
+    </div>
+  </section>
+
+  <section class="level" id="level-2" data-level="2" hidden>
+    <div class="level-head"><span class="level-num">Уровень 2</span><span class="level-type">область / метод</span></div>
+    <p class="hint">
+      Раскрой скобки и приведи к стандартному виду: по x это квадратное
+      уравнение. Для квадратного уравнения условие «ровно один корень»
+      записывается одним привычным способом — вспомни каким и выпиши его
+      через a и b.
+    </p>
+    <fieldset>
+      <legend>Направление верное?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l2-dir" value="верное"><span>верное</span></label>
+        <label class="chip"><input type="radio" name="l2-dir" value="неверное"><span>неверное</span></label>
+        <label class="chip"><input type="radio" name="l2-dir" value="непонятно"><span>непонятно</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Спойлерность <small>— сколько лишнего выдаёт</small></legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l2-sp" value="0"><span>0 — ничего лишнего</span></label>
+        <label class="chip"><input type="radio" name="l2-sp" value="1"><span>1 — чуть-чуть</span></label>
+        <label class="chip"><input type="radio" name="l2-sp" value="2"><span>2 — выдаёт метод</span></label>
+        <label class="chip"><input type="radio" name="l2-sp" value="3"><span>3 — выдаёт ключевую идею</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Помогла бы, если бы ты застряла?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l2-help" value="да"><span>да</span></label>
+        <label class="chip"><input type="radio" name="l2-help" value="наверное"><span>наверное</span></label>
+        <label class="chip"><input type="radio" name="l2-help" value="нет"><span>нет</span></label>
+      </div>
+    </fieldset>
+    <label class="lbl" for="l2-com">Комментарий <small>(необязательно)</small></label>
+    <textarea id="l2-com"></textarea>
+    <div class="next-row">
+      <button class="btn next-btn" data-next="level-3" disabled>Показать уровень 3</button>
+      <div class="gate-note">Кнопка откроется после ответов на три вопроса.</div>
+    </div>
+  </section>
+
+  <section class="level" id="level-3" data-level="3" hidden>
+    <div class="level-head"><span class="level-num">Уровень 3</span><span class="level-type">упрощённая задача</span></div>
+    <p class="hint">
+      Потренируйся на версии с числами: при каких действительных p уравнение
+      (x − 1)² + p·(x − 2)² = 0 имеет ровно одно решение? Это конкретная
+      задача — доводится до ответа прямым вычислением (я проверил: она
+      решается, и подходящих p больше одного). Реши её аккуратно, и способ
+      перенесётся на исходную.
+    </p>
+    <fieldset>
+      <legend>Направление верное?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l3-dir" value="верное"><span>верное</span></label>
+        <label class="chip"><input type="radio" name="l3-dir" value="неверное"><span>неверное</span></label>
+        <label class="chip"><input type="radio" name="l3-dir" value="непонятно"><span>непонятно</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Спойлерность <small>— сколько лишнего выдаёт</small></legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l3-sp" value="0"><span>0 — ничего лишнего</span></label>
+        <label class="chip"><input type="radio" name="l3-sp" value="1"><span>1 — чуть-чуть</span></label>
+        <label class="chip"><input type="radio" name="l3-sp" value="2"><span>2 — выдаёт метод</span></label>
+        <label class="chip"><input type="radio" name="l3-sp" value="3"><span>3 — выдаёт ключевую идею</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Помогла бы, если бы ты застряла?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l3-help" value="да"><span>да</span></label>
+        <label class="chip"><input type="radio" name="l3-help" value="наверное"><span>наверное</span></label>
+        <label class="chip"><input type="radio" name="l3-help" value="нет"><span>нет</span></label>
+      </div>
+    </fieldset>
+    <label class="lbl" for="l3-com">Комментарий <small>(необязательно)</small></label>
+    <textarea id="l3-com"></textarea>
+    <div class="next-row">
+      <button class="btn next-btn" data-next="level-4" disabled>Показать уровень 4</button>
+      <div class="gate-note">Кнопка откроется после ответов на три вопроса.</div>
+    </div>
+  </section>
+
+  <section class="level" id="level-4" data-level="4" hidden>
+    <div class="level-head"><span class="level-num">Уровень 4</span><span class="level-type">фрагмент теории</span></div>
+    <p class="hint">
+      Квадратное уравнение Ax² + Bx + C = 0 при A ≠ 0 имеет ровно одно
+      решение в точности тогда, когда B² − 4AC = 0. Случай A = 0 надо
+      разобрать отдельно: там уравнение линейное и имеет ровно один корень
+      при B ≠ 0.
+    </p>
+    <fieldset>
+      <legend>Направление верное?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l4-dir" value="верное"><span>верное</span></label>
+        <label class="chip"><input type="radio" name="l4-dir" value="неверное"><span>неверное</span></label>
+        <label class="chip"><input type="radio" name="l4-dir" value="непонятно"><span>непонятно</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Спойлерность <small>— сколько лишнего выдаёт</small></legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l4-sp" value="0"><span>0 — ничего лишнего</span></label>
+        <label class="chip"><input type="radio" name="l4-sp" value="1"><span>1 — чуть-чуть</span></label>
+        <label class="chip"><input type="radio" name="l4-sp" value="2"><span>2 — выдаёт метод</span></label>
+        <label class="chip"><input type="radio" name="l4-sp" value="3"><span>3 — выдаёт ключевую идею</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Помогла бы, если бы ты застряла?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="l4-help" value="да"><span>да</span></label>
+        <label class="chip"><input type="radio" name="l4-help" value="наверное"><span>наверное</span></label>
+        <label class="chip"><input type="radio" name="l4-help" value="нет"><span>нет</span></label>
+      </div>
+    </fieldset>
+    <label class="lbl" for="l4-com">Комментарий <small>(необязательно)</small></label>
+    <textarea id="l4-com"></textarea>
+    <div class="next-row">
+      <button class="btn next-btn" data-next="final" disabled>К вопросам о карточке</button>
+      <div class="gate-note">Кнопка откроется после ответов на три вопроса.</div>
+    </div>
+  </section>
+
+  <section class="final" id="final" hidden>
+    <h2>О карточке целиком</h2>
+    <fieldset>
+      <legend>Если бы ты реально застряла — на каком уровне остановилась бы?</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="f-stop" value="после уровня 1"><span>после 1</span></label>
+        <label class="chip"><input type="radio" name="f-stop" value="после уровня 2"><span>после 2</span></label>
+        <label class="chip"><input type="radio" name="f-stop" value="после уровня 3"><span>после 3</span></label>
+        <label class="chip"><input type="radio" name="f-stop" value="после уровня 4"><span>после 4</span></label>
+        <label class="chip"><input type="radio" name="f-stop" value="не хватило бы всех четырёх"><span>не хватило бы всех четырёх</span></label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Тон подсказок</legend>
+      <div class="chips">
+        <label class="chip"><input type="radio" name="f-tone" value="норм"><span>норм</span></label>
+        <label class="chip"><input type="radio" name="f-tone" value="поучающий"><span>поучающий</span></label>
+        <label class="chip"><input type="radio" name="f-tone" value="заискивающий"><span>заискивающий</span></label>
+        <label class="chip"><input type="radio" name="f-tone" value="другое"><span>другое (в комментарий)</span></label>
+      </div>
+    </fieldset>
+    <label class="lbl" for="f-com">Чего не хватило? Что лишнее? <small>(и всё остальное)</small></label>
+    <textarea id="f-com"></textarea>
+    <div class="next-row">
+      <button class="btn" id="copy-btn" disabled>Скопировать результаты</button><span class="copied" id="copy-status" hidden>Скопировано — вставь в чат.</span>
+      <div class="gate-note">Скопируй и отправь родителю — он вставит результаты в чат.</div>
+    </div>
+    <div class="out" id="out" hidden>
+      <label class="lbl" for="out-text">Результаты <small>(если копирование не сработало — выдели и скопируй вручную)</small></label>
+      <textarea id="out-text" readonly></textarea>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var LS_KEY = 'stemhint-card50-trial';
+  var levels = [1, 2, 3, 4];
+
+  function radioValue(name) {
+    var el = document.querySelector('input[name="' + name + '"]:checked');
+    return el ? el.value : '';
+  }
+
+  function levelComplete(n) {
+    return radioValue('l' + n + '-dir') && radioValue('l' + n + '-sp') && radioValue('l' + n + '-help');
+  }
+
+  function finalComplete() {
+    return radioValue('f-stop') && radioValue('f-tone');
+  }
+
+  function updateGates() {
+    levels.forEach(function (n) {
+      var btn = document.querySelector('#level-' + n + ' .next-btn');
+      if (btn) btn.disabled = !levelComplete(n);
+    });
+    document.getElementById('copy-btn').disabled = !finalComplete();
+  }
+
+  function escCell(s) {
+    return (s || '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ').trim();
+  }
+
+  function buildMarkdown() {
+    var lines = [];
+    lines.push('## Результаты обкатки — задача 50 (Летняя серия 2026)');
+    lines.push('');
+    lines.push('| Задача | Уровень | Направление | Спойлерность | Помогла бы | Комментарий |');
+    lines.push('|---|---|---|---|---|---|');
+    levels.forEach(function (n) {
+      lines.push('| 50 | ' + n + ' | ' + radioValue('l' + n + '-dir') + ' | ' +
+        radioValue('l' + n + '-sp') + ' | ' + radioValue('l' + n + '-help') + ' | ' +
+        escCell(document.getElementById('l' + n + '-com').value) + ' |');
+    });
+    lines.push('');
+    lines.push('**Остановилась бы:** ' + radioValue('f-stop'));
+    lines.push('**Тон:** ' + radioValue('f-tone'));
+    var fc = document.getElementById('f-com').value.trim();
+    lines.push('**Чего не хватило / что лишнее:** ' + (fc || '—'));
+    return lines.join('\n');
+  }
+
+  function saveState() {
+    try {
+      var state = { radios: {}, texts: {}, revealed: [] };
+      document.querySelectorAll('input[type="radio"]:checked').forEach(function (el) {
+        state.radios[el.name] = el.value;
+      });
+      document.querySelectorAll('textarea:not([readonly])').forEach(function (el) {
+        state.texts[el.id] = el.value;
+      });
+      document.querySelectorAll('section[hidden]').forEach(function (el) {
+        state.revealed.push(el.id + ':hidden');
+      });
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    } catch (e) { /* localStorage недоступен — работаем без сохранения */ }
+  }
+
+  function restoreState() {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      var state = JSON.parse(raw);
+      Object.keys(state.radios || {}).forEach(function (name) {
+        var el = document.querySelector('input[name="' + name + '"][value="' + state.radios[name] + '"]');
+        if (el) el.checked = true;
+      });
+      Object.keys(state.texts || {}).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.value = state.texts[id];
+      });
+      ['level-2', 'level-3', 'level-4', 'final'].forEach(function (id) {
+        if ((state.revealed || []).indexOf(id + ':hidden') === -1) {
+          document.getElementById(id).hidden = false;
+        }
+      });
+    } catch (e) { /* повреждённое состояние игнорируем */ }
+  }
+
+  document.addEventListener('change', function () { updateGates(); saveState(); });
+  document.addEventListener('input', function () { saveState(); });
+
+  document.querySelectorAll('.next-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var target = document.getElementById(btn.getAttribute('data-next'));
+      target.hidden = false;
+      target.classList.add('reveal');
+      btn.parentElement.hidden = true;
+      saveState();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', function () {
+    var md = buildMarkdown();
+    var out = document.getElementById('out');
+    var outText = document.getElementById('out-text');
+    out.hidden = false;
+    outText.value = md;
+    function done() {
+      document.getElementById('copy-status').hidden = false;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(md).then(done, function () {
+        outText.focus(); outText.select();
+      });
+    } else {
+      outText.focus(); outText.select();
+      try { document.execCommand('copy'); done(); } catch (e) { /* ручное копирование */ }
+    }
+  });
+
+  restoreState();
+  updateGates();
+})();
+</script>
