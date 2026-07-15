@@ -289,7 +289,12 @@ take a step alone, the over-explaining as unable to know the basics. Keep such
 a hint to the length of a remark between equals: name the meta-move in one
 sentence and stop — "try the degenerate case", not "hold this caveat in mind
 and separately go examine those edge cases one at a time". State no fact the
-student can be assumed to know. This risk is highest exactly where the ladder
+student can be assumed to know. Distinguish over-explaining from dismissing,
+though: shutting an obvious-but-forgettable case in one clause ("both cannot
+be odd — consecutive numbers include an even one") is content, not
+condescension — a student can stall precisely on the case they forgot to
+check, and closing a branch briefly is real work. It turns into a lecture
+only when unspooled into a paragraph of why. This risk is highest exactly where the ladder
 must lean on meta-cognition — number theory, combinatorics, and any problem
 where the method cannot be named early, so the orienting rungs carry the
 weight. Shifting weight onto meta-cognition is not licence to expand it into a
