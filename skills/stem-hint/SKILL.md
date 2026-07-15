@@ -75,7 +75,14 @@ below are a palette, not a required set — see "Ladder length" after the list.
    fact the student may not have at hand ("does this remind you of a known
    identity?"), anchor it: name the school topic where that fact lives.
    Without the anchor, the nudge degrades into a riddle for anyone who
-   doesn't recall the fact. Keep it short: a pointer of one or two sentences,
+   doesn't recall the fact. The same discipline applies when the nudge asks
+   the student to *search* for an object — an equality case, a
+   counterexample, an extremal configuration. Promise no ease you have not
+   checked from the stuck student's side ("simple values turn up quickly" is
+   a claim, and a wrong one frustrates); if the search space is wide, narrow
+   it in one clause ("try symmetric values") and count that clause in the
+   spoiler cost. An unguided hunt is the search-shaped riddle.
+   Keep it short: a pointer of one or two sentences,
    not a walkthrough of how to think — an unspooled orienting rung both reads
    as preachy and quietly raises its own spoiler cost (see Tone).
 2. **Method area** — the field or family of techniques, named broadly.
