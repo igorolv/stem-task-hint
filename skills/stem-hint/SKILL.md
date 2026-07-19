@@ -82,6 +82,23 @@ below are a palette, not a required set — see "Ladder length" after the list.
    a claim, and a wrong one frustrates); if the search space is wide, narrow
    it in one clause ("try symmetric values") and count that clause in the
    spoiler cost. An unguided hunt is the search-shaped riddle.
+   A third form: when the nudge prescribes an *experiment* — play out the
+   first moves, test small cases — ask first whether a stuck student has
+   already run it; for the obvious opening play of a process problem they
+   almost always have, and missed the point anyway. Re-prescribing it bare
+   ("try a few moves and a pattern will emerge") hands them nothing new:
+   the experiment-shaped riddle, promising insight the way an unchecked
+   search promises ease. To earn its rung the nudge must add the *lens* —
+   the feature to track while replaying ("watch what happens to the last
+   digit") — and a lens is information: count its cost. If the cheapest
+   lens that works already names the method, the problem has no cheap
+   level 1; accept the floor (see "A shallow problem sets a high floor")
+   rather than fake one with a lensless experiment. Whatever the form, pin
+   the deliverable: "which exact score arrived?" beats "what does this say
+   about the score?" — an ask that a qualitative half-answer can satisfy
+   lets the student nod along and stay stuck. All three disciplines
+   are one rule: a level-1 rung must hand the student something they do
+   not already have — an anchor, a narrowed space, a lens.
    Keep it short: a pointer of one or two sentences,
    not a walkthrough of how to think — an unspooled orienting rung both reads
    as preachy and quietly raises its own spoiler cost (see Tone).
@@ -139,7 +156,23 @@ or state the answer. Such problems support a very short ladder, often a single
 rung; keep it short rather than pad it with a louder repeat. (Contrast a problem
 that has a cheap orienting observation *separate* from the method — "this is
 quadratic in x" before "use the discriminant" — where level 1 can genuinely be
-low-spoiler.)
+low-spoiler. But an observation or experiment the stuck student has surely
+already consumed does not count as that cheap rung — see the lens rule in
+level 1.)
+
+**One rung, one step: balance the increments.** Ordering rungs by cost is not
+enough — the size of each jump matters too. A rung that hands several
+separable ideas at once (the key reformulation *and* its dynamics *and* the
+closing constraint) is a dump in ladder form: the student who needed one more
+nudge gets everything, and every rung below it goes dead — read as "the same,
+already told a level ago". When a candidate rung carries more than one
+conceptual step, split the payload and push the later pieces down the ladder.
+And judge "conceptual step" from where the student stands after the previous
+rung: a piece that is automatic for the target student once the earlier rungs
+have landed — a bookkeeping bound, an obvious closing computation — is
+execution, not a step, and cannot hold a rung of its own. The rung-by-rung
+check: what does a stuck student still have to *find* after reading this
+rung? When the answer is "nothing but arithmetic", the ladder ends there.
 
 ## Choosing among solution paths
 
@@ -208,6 +241,14 @@ Two cautions for any fallback:
 - No fake encouragement: "you are very close!" is allowed only when true.
 - A hint must not mislead even accidentally: do not point at a
   plausible-looking path you have not checked yourself.
+- State every fact in its true scope. A lemma that holds "with one small
+  exception", or only from some size up, must not be flattened into an
+  absolute claim: a strong student probes boundaries, finds the leak, and
+  then has to audit the hint instead of using it. Either scope the
+  statement, or flag the exception without locating it ("one small
+  exception exists — find it and check it does not bite here"). The flag
+  is cheap, honest, and usually *is* content: hunting the exception down
+  and neutralizing it is part of the real solution's work.
 - Every factual claim handed to the student — an analog problem, a lemma, a
   theory fragment — must be checkable by the student, because a claim they
   cannot trust adds a second problem instead of removing one. They need to
